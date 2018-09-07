@@ -7,7 +7,7 @@ import java.time.Instant
 import com.rabbitmq.client.{Channel, ConnectionFactory}
 import com.rabbitmq.client.{Connection => MqConnection}
 import com.ruimo.jobbroker.JobId
-import com.ruimo.jobbroker.dao.{AccountId, ApplicationId, JobStatus, Request}
+import com.ruimo.jobbroker.dao._
 import com.ruimo.jobbroker.queue.{JobQueue, WaitingJobHandle}
 import com.ruimo.scoins.LoanPattern._
 import com.ruimo.scoins.ResourceWrapper
@@ -88,6 +88,10 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
     handle: WaitingJobHandle
   ) {
     jobQueue.cancelJobWaiting(handle)
+  }
+
+  def doDbMigration() {
+    Migration.perform(conn())
   }
 }
 

@@ -1,0 +1,81 @@
+package com.ruimo.jobbroker.client
+
+import java.io.{InputStream, PrintWriter, StringWriter}
+import java.sql.{Connection, DriverManager}
+import java.time.Instant
+
+import com.rabbitmq.client.{Channel, ConnectionFactory}
+import com.rabbitmq.client.{Connection => MqConnection}
+import com.ruimo.jobbroker.JobId
+import com.ruimo.jobbroker.dao.{AccountId, ApplicationId, JobStatus, Request}
+import com.ruimo.jobbroker.queue.{JobQueue, WaitingJobHandle}
+import com.ruimo.scoins.LoanPattern._
+import com.ruimo.scoins.ResourceWrapper
+import com.typesafe.config.{Config, ConfigFactory}
+import com.ruimo.scoins.Scoping._
+import org.slf4j.{Logger, LoggerFactory}
+
+class ClientContext(
+  dbConnFactory: () => Connection,
+  mqConnFactory: () => MqConnection,
+) {
+  def withClient[T](
+    f: Client => T
+  ): T =
+    using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>
+      using(new ResourceWrapper[MqConnection](mqConnFactory)) { mqConn =>
+        f(new Client(conn, mqConn))
+      }.get
+    }.get
+
+  def submitJobWithBytes(
+    accountId: AccountId, applicationId: ApplicationId, in: Array[Byte], now: Instant = Instant.now()
+  ): Request = withClient(_.submitJobWithBytes(accountId, applicationId, in, now))
+
+  def submitJobWithStream(
+    accountId: AccountId, applicationId: ApplicationId, is: InputStream, now: Instant = Instant.now()
+  ): Request = withClient(_.submitJobWithStream(accountId, applicationId, is, now))
+
+  def retrieveJobWithBytes(
+    onJobObtained: (Request, Array[Byte]) => Unit,
+    onCancel: () => Unit,
+    onError: (JobId, Throwable) => Unit,
+    now: Instant = Instant.now()
+  ): WaitingJobHandle = withClient(_.retrieveJobWithBytes(onJobObtained, onCancel, onError, now))
+
+  def retrieveJobWithStream(
+    onJobObtained: (Request, InputStream) => Unit,
+    onCancel: () => Unit,
+    onError: (JobId, Throwable) => Unit,
+    now: Instant = Instant.now()
+  ): WaitingJobHandle = withClient(_.retrieveJobWithStream(onJobObtained, onCancel, onError, now))
+
+  def cancelJobWaiting(
+    handle: WaitingJobHandle
+  ) {
+    withClient(_.cancelJobWaiting(handle))
+  }
+}
+
+object ClientContext {
+  val conf: Config = ConfigFactory.load()
+
+  def apply(
+    dbUrl: String = conf.getString("jobbroker.db.url"),
+    dbUser: String = conf.getString("jobbroker.db.user"),
+    dbPassword: String = conf.getString("jobbroker.db.password"),
+    mqHost: String = conf.getString("jobbroker.mq.host"),
+    mqUser: String = conf.getString("jobbroker.mq.user"),
+    mqPassword: String = conf.getString("jobbroker.mq.password")
+  ): ClientContext = {
+    val connectionFactory = new ConnectionFactory()
+    connectionFactory.setUsername(mqUser)
+    connectionFactory.setPassword(mqPassword)
+    connectionFactory.setHost(mqHost)
+
+    new ClientContext(
+      () => DriverManager.getConnection(dbUrl, dbUser, dbPassword),
+      () => connectionFactory.newConnection()
+    )
+  }
+}

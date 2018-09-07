@@ -180,6 +180,55 @@ class ClientSpec extends Specification {
 
       1 === 1
     }
+
+    "Can submit and retrieve and store result by an array of byte." in {
+      org.h2.Driver.load()
+      val conn = DriverManager.getConnection("jdbc:h2:mem:test" + Random.nextLong())
+      Migration.perform(conn)
+      val mqFactory = new MockConnectionFactory
+
+      @volatile var result: Option[(Request, Array[Byte])] = None
+
+      def f(client: Client) {
+        val req: Request = client.submitJobWithBytes(
+          AccountId("acc01"),
+          ApplicationId("app01"),
+          "Ruimo".getBytes("utf-8"),
+          Instant.ofEpochMilli(123L)
+        )
+
+        val handle: WaitingJobHandle = client.retrieveJobWithBytes(
+          (request: Request, bytes: Array[Byte]) => {
+            client.storeJobResultWithBytes(
+              request.id, ("Hello," + new String(bytes, "utf-8")).getBytes("utf-8"), now = Instant.ofEpochMilli(999L)
+            )
+            result = Some(Request.retrieveJobResultWithBytes(request.id)(conn))
+          },
+          () => {failure("onCancel should not be called.")},
+          (jobId: JobId, t: Throwable) => {
+            t.printStackTrace()
+            failure("onError should not be called.")
+          },
+          Instant.ofEpochMilli(234L)
+        )
+
+        val start = System.currentTimeMillis
+        while (! result.isDefined) {
+          Thread.sleep(100)
+          if (System.currentTimeMillis - start > 10000) failure("Time out")
+        }
+      }
+
+      (new ClientContext(() => conn, () => mqFactory.newConnection)).withClient(f)
+
+      doWith(result.get) { case (req, bytes) =>
+          new String(bytes, "utf-8") === "Hello,Ruimo"
+          req.accountId === AccountId("acc01")
+          req.applicationId === ApplicationId("app01")
+          req.acceptedTime === Instant.ofEpochMilli(123L)
+          req.jobStartTime === Some(Instant.ofEpochMilli(234L))
+          req.jobEndTime === Some(Instant.ofEpochMilli(999L))
+      }
+    }
   }
 }
-

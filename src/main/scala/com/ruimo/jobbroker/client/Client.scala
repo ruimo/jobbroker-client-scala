@@ -84,6 +84,16 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
     (jobId, c) => Request.retrieveJobWithStream(jobId, now)(c)
   )
 
+  def storeJobResultWithBytes(
+    jobId: JobId, result: Array[Byte], now: Instant = Instant.now(),
+    jobStatus: JobStatus = JobStatus.JobEnded
+  ): Request = Request.storeJobResultWithBytes(jobId, result, now, jobStatus)(conn())
+
+  def storeJobResultWithStream(
+    jobId: JobId, result: InputStream, now: Instant = Instant.now(),
+    jobStatus: JobStatus = JobStatus.JobEnded
+  ): Request = Request.storeJobResultWithStream(jobId, result, now, jobStatus)(conn())
+
   def cancelJobWaiting(
     handle: WaitingJobHandle
   ) {

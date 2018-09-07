@@ -15,7 +15,7 @@ scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
 libraryDependencies += "com.ruimo" %% "jobbroker-dao" % "1.0-SNAPSHOT"
 libraryDependencies += "com.ruimo" %% "jobbroker-queue" % "1.0-SNAPSHOT"
-libraryDependencies += "com.ruimo" %% "scoins" % "1.16"
+libraryDependencies += "com.ruimo" %% "scoins" % "1.17"
 libraryDependencies += "com.typesafe" % "config" % "1.3.2"
 
 libraryDependencies += "org.specs2" %% "specs2-core" % "4.3.3" % Test

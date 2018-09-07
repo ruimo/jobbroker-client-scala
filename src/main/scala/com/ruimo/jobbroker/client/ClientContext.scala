@@ -59,6 +59,7 @@ class ClientContext(
 
 object ClientContext {
   val conf: Config = ConfigFactory.load()
+  val Logger: Logger = LoggerFactory.getLogger(getClass)
 
   def apply(
     dbUrl: String = conf.getString("jobbroker.db.url"),
@@ -68,6 +69,11 @@ object ClientContext {
     mqUser: String = conf.getString("jobbroker.mq.user"),
     mqPassword: String = conf.getString("jobbroker.mq.password")
   ): ClientContext = {
+    Logger.info("dbUrl = '" + dbUrl + "'")
+    Logger.info("dbUser = '" + dbUser + "'")
+    Logger.info("mqHost = '" + mqHost + "'")
+    Logger.info("mqUser = '" + mqUser + "'")
+
     val connectionFactory = new ConnectionFactory()
     connectionFactory.setUsername(mqUser)
     connectionFactory.setPassword(mqPassword)

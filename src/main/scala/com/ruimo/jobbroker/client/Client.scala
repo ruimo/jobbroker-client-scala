@@ -23,6 +23,7 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
   def submitJobWithBytes(
     accountId: AccountId, applicationId: ApplicationId, in: Array[Byte], now: Instant = Instant.now()
   ): Request = {
+    logger.info("submitJobWithBytes(" + accountId + ", " + applicationId + ") called")
     val req = Request.submitJobWithBytes(accountId, applicationId, in, now)(conn())
     jobQueue.submitJob(req.id)
     req
@@ -61,6 +62,7 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
       onError(jobId, t)
     }
 
+    logger.info("retrieveJob() called")
     jobQueue.waitJob(perform, onCancel, error)
   }
 
@@ -87,12 +89,18 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
   def storeJobResultWithBytes(
     jobId: JobId, result: Array[Byte], now: Instant = Instant.now(),
     jobStatus: JobStatus = JobStatus.JobEnded
-  ): Request = Request.storeJobResultWithBytes(jobId, result, now, jobStatus)(conn())
+  ): Request = {
+    logger.info("storeJobResultWithBytes(" + jobId + ") called")
+    Request.storeJobResultWithBytes(jobId, result, now, jobStatus)(conn())
+  }
 
   def storeJobResultWithStream(
     jobId: JobId, result: InputStream, now: Instant = Instant.now(),
     jobStatus: JobStatus = JobStatus.JobEnded
-  ): Request = Request.storeJobResultWithStream(jobId, result, now, jobStatus)(conn())
+  ): Request = {
+    logger.info("storeJobResultWithStream(" + jobId + ") called")
+    Request.storeJobResultWithStream(jobId, result, now, jobStatus)(conn())
+  }
 
   def cancelJobWaiting(
     handle: WaitingJobHandle

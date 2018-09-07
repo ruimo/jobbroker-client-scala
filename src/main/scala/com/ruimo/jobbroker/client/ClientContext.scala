@@ -15,6 +15,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.ruimo.scoins.Scoping._
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.util.{Failure, Success}
+
 class ClientContext(
   dbConnFactory: () => Connection,
   mqConnFactory: () => MqConnection,
@@ -25,7 +27,15 @@ class ClientContext(
     using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>
       using(new ResourceWrapper[MqConnection](mqConnFactory)) { mqConn =>
         f(new Client(conn, mqConn))
-      }.get
+      } match {
+        case Success(v) => {
+          conn.foreach(_.commit())
+          v
+        }
+        case Failure(e) =>
+          conn.foreach(_.rollback())
+          throw e
+      }
     }.get
 
   def submitJobWithBytes(

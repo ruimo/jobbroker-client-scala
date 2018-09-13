@@ -9,7 +9,7 @@ import java.time.Instant
 import com.ruimo.scoins.Scoping._
 import com.github.fridujo.rabbitmq.mock.MockConnectionFactory
 import com.ruimo.jobbroker.JobId
-import com.ruimo.jobbroker.dao.{AccountId, ApplicationId, Migration, Request}
+import com.ruimo.jobbroker.dao._
 import com.ruimo.jobbroker.queue.WaitingJobHandle
 import org.specs2.execute.{ExecuteException, FailureException}
 
@@ -217,6 +217,16 @@ class ClientSpec extends Specification {
           Thread.sleep(100)
           if (System.currentTimeMillis - start > 10000) failure("Time out")
         }
+
+        val (resultReq: Request, resultBytes: Array[Byte]) = client.retrieveJobResultWithBytes(result.get._1.id)
+        resultReq.id === req.id
+        resultReq.jobStatus === JobStatus.JobEnded
+        resultReq.accountId === req.accountId
+        resultReq.applicationId === req.applicationId
+        resultReq.acceptedTime === req.acceptedTime
+        resultReq.jobStartTime === Some(Instant.ofEpochMilli(234L))
+        resultReq.jobEndTime === Some(Instant.ofEpochMilli(999L))
+        (new String(resultBytes, "utf-8")) === "Hello,Ruimo"
       }
 
       (new ClientContext(() => conn, () => mqFactory.newConnection)).withClient(f)

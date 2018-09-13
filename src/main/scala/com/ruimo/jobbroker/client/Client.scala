@@ -102,6 +102,14 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
     Request.storeJobResultWithStream(jobId, result, now, jobStatus)(conn())
   }
 
+  def retrieveJobResultWithBytes(
+    jobId: JobId
+  ): (Request, Array[Byte]) = Request.retrieveJobResultWithBytes(jobId)(conn())
+
+  def retrieveJobResultWithStream(
+    jobId: JobId
+  ): (Request, InputStream) = Request.retrieveJobResultWithStream(jobId)(conn())
+
   def cancelJobWaiting(
     handle: WaitingJobHandle
   ) {

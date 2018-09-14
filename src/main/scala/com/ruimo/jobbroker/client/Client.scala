@@ -41,10 +41,10 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
     onJobObtained: (Request, T) => Unit,
     onCancel: () => Unit,
     onError: (JobId, Throwable) => Unit,
-    retrieveJob: (JobId, Connection) => (Request, T)
+    jobRetriever: (JobId, Connection) => (Request, T)
   ): WaitingJobHandle = {
     def perform(jobId: JobId) {
-      val (request: Request, job: T) = retrieveJob(jobId, conn())
+      val (request: Request, job: T) = jobRetriever(jobId, conn())
       onJobObtained(request, job)
     }
 

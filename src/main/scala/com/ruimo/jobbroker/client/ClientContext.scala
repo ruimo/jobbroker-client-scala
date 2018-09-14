@@ -29,10 +29,12 @@ class ClientContext(
         f(new Client(conn, mqConn))
       } match {
         case Success(v) => {
+          ClientContext.Logger.info("Committing the transaction.")
           conn.foreach(_.commit())
           v
         }
         case Failure(e) =>
+          ClientContext.Logger.error("Rolling back the transaction.", e)
           conn.foreach(_.rollback())
           throw e
       }

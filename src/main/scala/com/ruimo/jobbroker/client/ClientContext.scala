@@ -24,7 +24,6 @@ class ClientContext(
   def withClient[T](
     f: Client => T
   ): T = {
-throw new Error("Debug")
     ClientContext.Logger.info("Start ClientContext.withClient().")
 
     using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>

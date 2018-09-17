@@ -23,7 +23,9 @@ class ClientContext(
 ) {
   def withClient[T](
     f: Client => T
-  ): T =
+  ): T = {
+    ClientContext.Logger.info("Start ClientContext.withClient().")
+
     using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>
       using(new ResourceWrapper[MqConnection](mqConnFactory)) { mqConn =>
         f(new Client(conn, mqConn))
@@ -39,6 +41,7 @@ class ClientContext(
           throw e
       }
     }.get
+  }
 
   def submitJobWithBytes(
     accountId: AccountId, applicationId: ApplicationId, in: Array[Byte], now: Instant = Instant.now()

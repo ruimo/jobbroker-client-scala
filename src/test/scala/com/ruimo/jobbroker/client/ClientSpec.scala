@@ -187,7 +187,7 @@ class ClientSpec extends Specification {
       Migration.perform(conn)
       val mqFactory = new MockConnectionFactory
 
-      @volatile var result: Option[(Request, Array[Byte])] = None
+      @volatile var result: Option[(Request, Option[Array[Byte]])] = None
 
       def f(client: Client) {
         val req: Request = client.submitJobWithBytes(
@@ -218,7 +218,7 @@ class ClientSpec extends Specification {
           if (System.currentTimeMillis - start > 10000) failure("Time out")
         }
 
-        val (resultReq: Request, resultBytes: Array[Byte]) = client.retrieveJobResultWithBytes(result.get._1.id)
+        val (resultReq: Request, resultBytes: Option[Array[Byte]]) = client.retrieveJobResultWithBytes(result.get._1.id)
         resultReq.id === req.id
         resultReq.jobStatus === JobStatus.JobEnded
         resultReq.accountId === req.accountId
@@ -226,13 +226,13 @@ class ClientSpec extends Specification {
         resultReq.acceptedTime === req.acceptedTime
         resultReq.jobStartTime === Some(Instant.ofEpochMilli(234L))
         resultReq.jobEndTime === Some(Instant.ofEpochMilli(999L))
-        (new String(resultBytes, "utf-8")) === "Hello,Ruimo"
+        (new String(resultBytes.get, "utf-8")) === "Hello,Ruimo"
       }
 
       (new ClientContext(() => conn, () => mqFactory.newConnection)).withClient(f)
 
       doWith(result.get) { case (req, bytes) =>
-          new String(bytes, "utf-8") === "Hello,Ruimo"
+          new String(bytes.get, "utf-8") === "Hello,Ruimo"
           req.accountId === AccountId("acc01")
           req.applicationId === ApplicationId("app01")
           req.acceptedTime === Instant.ofEpochMilli(123L)

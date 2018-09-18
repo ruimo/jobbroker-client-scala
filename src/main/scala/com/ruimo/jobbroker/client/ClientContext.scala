@@ -29,17 +29,7 @@ class ClientContext(
     using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>
       using(new ResourceWrapper[MqConnection](mqConnFactory)) { mqConn =>
         f(new Client(conn, mqConn))
-      } match {
-        case Success(v) => {
-          ClientContext.Logger.info("Committing the transaction.")
-          conn.foreach(_.commit())
-          v
-        }
-        case Failure(e) =>
-          ClientContext.Logger.error("Rolling back the transaction.", e)
-          conn.foreach(_.rollback())
-          throw e
-      }
+      }.get
     }.get
   }
 

@@ -120,8 +120,12 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
     Migration.perform(conn())
   }
 
+  def setAutoCommit(b: Boolean) {
+    conn().setAutoCommit(b)
+  }
+
   def commit() {
-    conn.foreach(_.commit())
+    conn().commit()
   }
 }
 

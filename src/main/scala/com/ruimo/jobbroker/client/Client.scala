@@ -119,6 +119,10 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
   def doDbMigration() {
     Migration.perform(conn())
   }
+
+  def commit() {
+    conn.foreach(_.commit())
+  }
 }
 
 object Client {

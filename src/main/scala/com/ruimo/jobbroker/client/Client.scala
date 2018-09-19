@@ -127,6 +127,10 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
   def commit() {
     conn().commit()
   }
+
+  def closeDbConnection() {
+    conn.close()
+  }
 }
 
 object Client {

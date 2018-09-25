@@ -13,6 +13,7 @@ import com.ruimo.scoins.LoanPattern._
 import com.ruimo.scoins.ResourceWrapper
 import com.typesafe.config.{Config, ConfigFactory}
 import com.ruimo.scoins.Scoping._
+import com.ruimo.scoins.Throwables
 import org.slf4j.{Logger, LoggerFactory}
 
 class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnection]) {
@@ -52,7 +53,7 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
       try {
         Request.storeJobResultWithBytes(
           jobId,
-          Client.stackTraceToString(t).getBytes("utf-8"),
+          Throwables.stackTrace(t).getBytes("utf-8"),
           jobStatus = JobStatus.JobSystemError
         )(conn())
       } catch {
@@ -131,13 +132,4 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
   def closeDbConnection() {
     conn.close()
   }
-}
-
-object Client {
-  def stackTraceToString(t: Throwable): String = using(new StringWriter()) { sw =>
-    using(new PrintWriter(sw)) { pw =>
-      t.printStackTrace(pw)
-    }.get
-    sw.toString
-  }.get
 }

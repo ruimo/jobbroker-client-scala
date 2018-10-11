@@ -26,11 +26,15 @@ class ClientContext(
   ): T = {
     ClientContext.Logger.info("Start ClientContext.withClient().")
 
-    using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>
-      using(new ResourceWrapper[MqConnection](mqConnFactory)) { mqConn =>
-        f(new Client(conn, mqConn))
+    try {
+      using(new ResourceWrapper[Connection](dbConnFactory)) { conn =>
+        using(new ResourceWrapper[MqConnection](mqConnFactory)) { mqConn =>
+          f(new Client(conn, mqConn))
+        }.get
       }.get
-    }.get
+    } finally {
+      ClientContext.Logger.info("End ClientContext.withClient().")
+    }
   }
 
   def submitJobWithBytes(

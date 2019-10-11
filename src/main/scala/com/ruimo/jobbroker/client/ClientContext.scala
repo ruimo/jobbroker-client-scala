@@ -67,10 +67,7 @@ class ClientContext(
 }
 
 trait ClientContextFactory {
-  def apply(
-    dbUrl: String, dbUser: String, dbPassword: String,
-    mqHost: String, mqUser: String, mqPassword: String
-  ): ClientContext
+  def createInstance(): ClientContext
 }
 
 object ClientContext extends ClientContextFactory {
@@ -100,4 +97,6 @@ object ClientContext extends ClientContextFactory {
       () => connectionFactory.newConnection()
     )
   }
+
+  override def createInstance(): ClientContext = ClientContext()
 }

@@ -21,6 +21,15 @@ class Client(conn: ResourceWrapper[Connection], mqConn: ResourceWrapper[MqConnec
   lazy val channel = mqConn().createChannel()
   lazy val jobQueue: JobQueue = new JobQueue(channel)
 
+  def count(
+    accountId: Option[AccountId] = None,
+    applicationId: Option[ApplicationId] = None,
+    jobStatus: JobStatus
+  ): Long = {
+    logger.info("count(" + accountId + ", " + applicationId + ", " + jobStatus + ") called")
+    Request.count(accountId, applicationId, jobStatus)(conn())
+  }
+
   def submitJobWithBytes(
     accountId: AccountId, applicationId: ApplicationId, in: Array[Byte], now: Instant = Instant.now()
   ): Request = {

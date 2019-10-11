@@ -66,7 +66,14 @@ class ClientContext(
   }
 }
 
-object ClientContext {
+trait ClientContextFactory {
+  def apply(
+    dbUrl: String, dbUser: String, dbPassword: String,
+    mqHost: String, mqUser: String, mqPassword: String
+  ): ClientContext
+}
+
+object ClientContext extends ClientContextFactory {
   val conf: Config = ConfigFactory.load()
   val Logger: Logger = LoggerFactory.getLogger(getClass)
 

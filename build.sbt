@@ -13,7 +13,7 @@ resolvers += "ruimo.com" at "http://static.ruimo.com/release"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-libraryDependencies += "com.ruimo" %% "jobbroker-dao" % "1.1-SNAPSHOT"
+libraryDependencies += "com.ruimo" %% "jobbroker-dao" % "1.1"
 libraryDependencies += "com.ruimo" %% "jobbroker-queue" % "1.1"
 libraryDependencies += "com.ruimo" %% "scoins" % "1.21"
 libraryDependencies += "com.typesafe" % "config" % "1.3.2"

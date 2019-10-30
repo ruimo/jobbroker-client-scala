@@ -79,7 +79,7 @@ object ClientContext extends ClientContextFactory {
     dbUser: String = conf.getString("jobbroker.db.user"),
     dbPassword: String = conf.getString("jobbroker.db.password"),
     mqHost: String = conf.getString("jobbroker.mq.host"),
-    mqPort: Int = conf.getString("jobbroker.mq.port"),
+    mqPort: Int = conf.getInt("jobbroker.mq.port"),
     mqUser: String = conf.getString("jobbroker.mq.user"),
     mqPassword: String = conf.getString("jobbroker.mq.password")
   ): ClientContext = {

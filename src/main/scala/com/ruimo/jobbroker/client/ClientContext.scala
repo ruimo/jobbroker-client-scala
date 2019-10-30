@@ -79,18 +79,21 @@ object ClientContext extends ClientContextFactory {
     dbUser: String = conf.getString("jobbroker.db.user"),
     dbPassword: String = conf.getString("jobbroker.db.password"),
     mqHost: String = conf.getString("jobbroker.mq.host"),
+    mqPort: Int = conf.getString("jobbroker.mq.port"),
     mqUser: String = conf.getString("jobbroker.mq.user"),
     mqPassword: String = conf.getString("jobbroker.mq.password")
   ): ClientContext = {
     Logger.info("dbUrl = '" + dbUrl + "'")
     Logger.info("dbUser = '" + dbUser + "'")
     Logger.info("mqHost = '" + mqHost + "'")
+    Logger.info("mqPort = '" + mqPort + "'")
     Logger.info("mqUser = '" + mqUser + "'")
 
     val connectionFactory = new ConnectionFactory()
     connectionFactory.setUsername(mqUser)
     connectionFactory.setPassword(mqPassword)
     connectionFactory.setHost(mqHost)
+    connectionFactory.setPort(mqPort)
 
     new ClientContext(
       () => DriverManager.getConnection(dbUrl, dbUser, dbPassword),
